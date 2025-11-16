@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HaloAI - Your Intelligent Assistant</title>
-    <meta name="description" content="HaloAI - Advanced AI chat assistant with customizable themes and intelligent conversation modes.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -15,23 +13,10 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn {
-            animation: fadeIn 0.3s ease-out;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        #root {
-            width: 100%;
-            height: 100%;
-        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; }
+        #root { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
@@ -40,25 +25,36 @@
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
         
-        // Simple localStorage wrapper
         const storage = {
-            get: async (key) => {
-                const value = localStorage.getItem(key);
-                return value ? { value } : null;
+            get: (key) => {
+                try {
+                    const value = localStorage.getItem(key);
+                    return value ? { value } : null;
+                } catch (e) {
+                    console.error('Storage get error:', e);
+                    return null;
+                }
             },
-            set: async (key, value) => {
-                localStorage.setItem(key, value);
-                return { key, value };
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                    return { key, value };
+                } catch (e) {
+                    console.error('Storage set error:', e);
+                    return null;
+                }
             },
-            delete: async (key) => {
-                localStorage.removeItem(key);
-                return { key, deleted: true };
+            delete: (key) => {
+                try {
+                    localStorage.removeItem(key);
+                    return { key, deleted: true };
+                } catch (e) {
+                    console.error('Storage delete error:', e);
+                    return null;
+                }
             }
         };
-        
-        window.storage = storage;
 
-        // Icon Components
         const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>;
         const Loader2 = () => <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>;
         const Plus = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
@@ -67,10 +63,10 @@
         const MessageSquare = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>;
         const Settings = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6"></path></svg>;
         const Moon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
-        const Sun = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>;
+        const Sun = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line></svg>;
         const Zap = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
         const Sparkles = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v18m9-9H3"></path></svg>;
-        const Brain = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44"></path></svg>;
+        const Brain = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44"></path></svg>;
 
         function HaloAI() {
             const [screen, setScreen] = useState('login');
@@ -97,12 +93,6 @@
             const [sentCode, setSentCode] = useState('');
             const [showVerification, setShowVerification] = useState(false);
 
-            const API_CONFIG = {
-                endpoint: 'https://api.anthropic.com/v1/messages',
-                model: 'claude-sonnet-4-20250514',
-                maxTokens: 1000
-            };
-
             const colorSchemes = {
                 purple: { gradient: 'from-purple-600 to-pink-600', text: 'text-purple-400', ring: 'ring-purple-500' },
                 blue: { gradient: 'from-blue-600 to-cyan-600', text: 'text-blue-400', ring: 'ring-blue-500' },
@@ -113,39 +103,32 @@
             };
 
             const aiModes = {
-                balanced: { name: 'Balanced', icon: <Zap />, desc: 'Perfect mix of creativity and accuracy', temp: 0.7 },
-                creative: { name: 'Creative', icon: <Sparkles />, desc: 'Imaginative and expressive', temp: 1.0 },
-                precise: { name: 'Precise', icon: <Brain />, desc: 'Accurate and concise', temp: 0.3 },
+                balanced: { name: 'Balanced', icon: <Zap />, desc: 'Perfect mix', temp: 0.7 },
+                creative: { name: 'Creative', icon: <Sparkles />, desc: 'Imaginative', temp: 1.0 },
+                precise: { name: 'Precise', icon: <Brain />, desc: 'Accurate', temp: 0.3 },
             };
-
-            const suggestedPrompts = [
-                "Tell me a creative story",
-                "Explain quantum physics simply",
-                "Help me brainstorm ideas",
-                "Write a poem about AI",
-                "Solve a complex problem",
-                "Teach me something new"
-            ];
 
             useEffect(() => {
                 loadUserData();
             }, []);
 
             useEffect(() => {
-                scrollToBottom();
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
             }, [messages]);
 
-            const loadUserData = async () => {
+            const loadUserData = () => {
                 try {
-                    const userData = await storage.get('haloai_current_user');
-                    if (userData) {
+                    const userData = storage.get('haloai_current_user');
+                    if (userData && userData.value) {
                         const parsedUser = JSON.parse(userData.value);
                         setUser(parsedUser);
                         if (parsedUser.theme) setTheme(parsedUser.theme);
                         if (parsedUser.colorScheme) setColorScheme(parsedUser.colorScheme);
                         if (parsedUser.aiMode) setAiMode(parsedUser.aiMode);
                         if (parsedUser.temperature !== undefined) setTemperature(parsedUser.temperature);
-                        await loadChats(parsedUser.email);
+                        loadChats(parsedUser.email);
                         setScreen('chat');
                     }
                 } catch (error) {
@@ -153,15 +136,15 @@
                 }
             };
 
-            const loadChats = async (userEmail) => {
+            const loadChats = (userEmail) => {
                 try {
-                    const chatsData = await storage.get('haloai_chats_' + userEmail);
-                    if (chatsData) {
+                    const chatsData = storage.get('haloai_chats_' + userEmail);
+                    if (chatsData && chatsData.value) {
                         const parsedChats = JSON.parse(chatsData.value);
                         setChats(parsedChats);
                         if (parsedChats.length > 0) {
                             setCurrentChatId(parsedChats[0].id);
-                            await loadMessages(parsedChats[0].id, userEmail);
+                            loadMessages(parsedChats[0].id, userEmail);
                         }
                     }
                 } catch (error) {
@@ -169,10 +152,10 @@
                 }
             };
 
-            const loadMessages = async (chatId, userEmail) => {
+            const loadMessages = (chatId, userEmail) => {
                 try {
-                    const messagesData = await storage.get('haloai_messages_' + userEmail + '_' + chatId);
-                    if (messagesData) {
+                    const messagesData = storage.get('haloai_messages_' + userEmail + '_' + chatId);
+                    if (messagesData && messagesData.value) {
                         setMessages(JSON.parse(messagesData.value));
                     } else {
                         setMessages([]);
@@ -182,18 +165,23 @@
                 }
             };
 
-            const saveChats = async (updatedChats) => {
-                await storage.set('haloai_chats_' + user.email, JSON.stringify(updatedChats));
+            const saveChats = (updatedChats) => {
+                if (user && user.email) {
+                    storage.set('haloai_chats_' + user.email, JSON.stringify(updatedChats));
+                }
             };
 
-            const saveMessages = async (chatId, msgs) => {
-                await storage.set('haloai_messages_' + user.email + '_' + chatId, JSON.stringify(msgs));
+            const saveMessages = (chatId, msgs) => {
+                if (user && user.email) {
+                    storage.set('haloai_messages_' + user.email + '_' + chatId, JSON.stringify(msgs));
+                }
             };
 
-            const saveUserSettings = async (updates) => {
+            const saveUserSettings = (updates) => {
+                if (!user) return;
                 const updatedUser = { ...user, ...updates };
-                await storage.set('haloai_user_' + user.email, JSON.stringify(updatedUser));
-                await storage.set('haloai_current_user', JSON.stringify(updatedUser));
+                storage.set('haloai_user_' + user.email, JSON.stringify(updatedUser));
+                storage.set('haloai_current_user', JSON.stringify(updatedUser));
                 setUser(updatedUser);
             };
 
@@ -202,7 +190,7 @@
                 return emailRegex.test(email);
             };
 
-            const sendVerificationCode = async () => {
+            const sendVerificationCode = () => {
                 if (!validateEmail(email)) {
                     alert('Please enter a valid email address');
                     return;
@@ -215,29 +203,31 @@
                 const code = Math.floor(100000 + Math.random() * 900000).toString();
                 setSentCode(code);
                 setShowVerification(true);
-                alert('Verification code: ' + code + '\\n\\n(In production, this would be emailed)');
+                alert('Verification code: ' + code);
             };
 
-            const verifyAndSignup = async () => {
+            const verifyAndSignup = () => {
                 if (verificationCode !== sentCode) {
                     alert('Invalid verification code');
                     return;
                 }
                 setShowVerification(false);
+                setVerificationCode('');
                 setScreen('onboarding');
             };
 
-            const handleSignup = () => sendVerificationCode();
-
-            const handleLogin = async () => {
-                if (!email || !password) return;
+            const handleLogin = () => {
+                if (!email || !password) {
+                    alert('Please enter email and password');
+                    return;
+                }
                 if (!validateEmail(email)) {
                     alert('Please enter a valid email');
                     return;
                 }
                 try {
-                    const userData = await storage.get('haloai_user_' + email);
-                    if (userData) {
+                    const userData = storage.get('haloai_user_' + email);
+                    if (userData && userData.value) {
                         const parsedUser = JSON.parse(userData.value);
                         if (parsedUser.password === password) {
                             setUser(parsedUser);
@@ -245,21 +235,21 @@
                             if (parsedUser.colorScheme) setColorScheme(parsedUser.colorScheme);
                             if (parsedUser.aiMode) setAiMode(parsedUser.aiMode);
                             if (parsedUser.temperature !== undefined) setTemperature(parsedUser.temperature);
-                            await storage.set('haloai_current_user', JSON.stringify(parsedUser));
-                            await loadChats(parsedUser.email);
+                            storage.set('haloai_current_user', JSON.stringify(parsedUser));
+                            loadChats(parsedUser.email);
                             setScreen('chat');
                         } else {
                             alert('Incorrect password');
                         }
                     } else {
-                        alert('Account not found');
+                        alert('Account not found. Please sign up first.');
                     }
                 } catch (error) {
                     alert('Login failed');
                 }
             };
 
-            const handleOnboarding = async () => {
+            const handleOnboarding = () => {
                 if (!name) {
                     alert('Please enter your name');
                     return;
@@ -269,14 +259,17 @@
                     theme: 'dark', colorScheme: 'purple', 
                     aiMode: 'balanced', temperature: 0.7
                 };
-                await storage.set('haloai_user_' + email, JSON.stringify(newUser));
-                await storage.set('haloai_current_user', JSON.stringify(newUser));
+                storage.set('haloai_user_' + email, JSON.stringify(newUser));
+                storage.set('haloai_current_user', JSON.stringify(newUser));
                 setUser(newUser);
+                setChats([]);
+                setMessages([]);
+                setCurrentChatId(null);
                 setScreen('chat');
             };
 
-            const handleLogout = async () => {
-                await storage.delete('haloai_current_user');
+            const handleLogout = () => {
+                storage.delete('haloai_current_user');
                 setUser(null);
                 setChats([]);
                 setMessages([]);
@@ -284,6 +277,8 @@
                 setScreen('login');
                 setEmail('');
                 setPassword('');
+                setName('');
+                setTopics('');
             };
 
             const getGreeting = () => {
@@ -293,7 +288,7 @@
                 return 'Good evening';
             };
 
-            const createNewChat = async () => {
+            const createNewChat = () => {
                 const newChat = {
                     id: Date.now().toString(),
                     name: 'New Chat',
@@ -303,18 +298,20 @@
                 setChats(updatedChats);
                 setCurrentChatId(newChat.id);
                 setMessages([]);
-                await saveChats(updatedChats);
+                saveChats(updatedChats);
             };
 
-            const deleteChat = async (chatId) => {
+            const deleteChat = (chatId) => {
                 const updatedChats = chats.filter(c => c.id !== chatId);
                 setChats(updatedChats);
-                await saveChats(updatedChats);
-                await storage.delete('haloai_messages_' + user.email + '_' + chatId);
+                saveChats(updatedChats);
+                if (user && user.email) {
+                    storage.delete('haloai_messages_' + user.email + '_' + chatId);
+                }
                 if (currentChatId === chatId) {
                     if (updatedChats.length > 0) {
                         setCurrentChatId(updatedChats[0].id);
-                        await loadMessages(updatedChats[0].id, user.email);
+                        loadMessages(updatedChats[0].id, user.email);
                     } else {
                         setCurrentChatId(null);
                         setMessages([]);
@@ -322,24 +319,16 @@
                 }
             };
 
-            const switchChat = async (chatId) => {
+            const switchChat = (chatId) => {
                 setCurrentChatId(chatId);
-                await loadMessages(chatId, user.email);
-            };
-
-            const getSystemPrompt = () => {
-                let prompt = user.topics ? 'User interests: ' + user.topics + '. ' : '';
-                switch(aiMode) {
-                    case 'precise': prompt += 'Be concise and accurate.'; break;
-                    case 'creative': prompt += 'Be creative and imaginative.'; break;
-                    default: prompt += 'Be helpful and balanced.';
+                if (user && user.email) {
+                    loadMessages(chatId, user.email);
                 }
-                return prompt;
             };
 
             const sendMessage = async (messageText) => {
                 const textToSend = messageText || input;
-                if (!textToSend.trim() || isLoading) return;
+                if (!textToSend.trim() || isLoading || !currentChatId) return;
 
                 const userMessage = { role: 'user', content: textToSend };
                 const updatedMessages = [...messages, userMessage];
@@ -349,21 +338,21 @@
                 setError('');
 
                 try {
-                    const response = await fetch(API_CONFIG.endpoint, {
+                    const response = await fetch('https://api.anthropic.com/v1/messages', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            model: API_CONFIG.model,
-                            max_tokens: API_CONFIG.maxTokens,
+                            model: 'claude-sonnet-4-20250514',
+                            max_tokens: 1000,
                             temperature: temperature,
-                            system: getSystemPrompt(),
+                            system: user && user.topics ? 'User interests: ' + user.topics : '',
                             messages: updatedMessages,
                         }),
                     });
 
                     const data = await response.json();
                     
-                    if (data.error) throw new Error(data.error.message || 'Error occurred');
+                    if (data.error) throw new Error(data.error.message || 'Error');
                     
                     if (data.content && data.content.length > 0) {
                         const aiMessage = {
@@ -372,47 +361,31 @@
                         };
                         const finalMessages = [...updatedMessages, aiMessage];
                         setMessages(finalMessages);
-                        await saveMessages(currentChatId, finalMessages);
+                        saveMessages(currentChatId, finalMessages);
 
                         const currentChat = chats.find(c => c.id === currentChatId);
                         if (currentChat && currentChat.name === 'New Chat' && finalMessages.length === 2) {
-                            try {
-                                const titleResp = await fetch(API_CONFIG.endpoint, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        model: API_CONFIG.model,
-                                        max_tokens: 50,
-                                        messages: [{ role: 'user', content: 'Generate a 2-4 word title for: "' + textToSend + '"' }],
-                                    }),
-                                });
-                                const titleData = await titleResp.json();
-                                if (titleData.content && titleData.content.length > 0) {
-                                    const newName = titleData.content[0].text.trim().replace(/['"]/g, '').slice(0, 40);
-                                    const updatedChats = chats.map(c => c.id === currentChatId ? { ...c, name: newName } : c);
-                                    setChats(updatedChats);
-                                    await saveChats(updatedChats);
-                                }
-                            } catch (e) {}
+                            const newName = textToSend.slice(0, 30) + (textToSend.length > 30 ? '...' : '');
+                            const updatedChats = chats.map(c => c.id === currentChatId ? { ...c, name: newName } : c);
+                            setChats(updatedChats);
+                            saveChats(updatedChats);
                         }
                     }
                 } catch (error) {
                     setError(error.message);
-                    const errorMsg = { role: 'assistant', content: 'Sorry, an error occurred. Please try again.' };
+                    const errorMsg = { role: 'assistant', content: 'Sorry, an error occurred: ' + error.message };
                     const finalMessages = [...updatedMessages, errorMsg];
                     setMessages(finalMessages);
-                    await saveMessages(currentChatId, finalMessages);
+                    saveMessages(currentChatId, finalMessages);
                 } finally {
                     setIsLoading(false);
                 }
             };
 
-            const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-
-            const updateTheme = async (t) => { setTheme(t); await saveUserSettings({ theme: t }); };
-            const updateColorScheme = async (c) => { setColorScheme(c); await saveUserSettings({ colorScheme: c }); };
-            const updateAiMode = async (m) => { setAiMode(m); setTemperature(aiModes[m].temp); await saveUserSettings({ aiMode: m, temperature: aiModes[m].temp }); };
-            const updateTemperature = async (t) => { setTemperature(t); await saveUserSettings({ temperature: t }); };
+            const updateTheme = (t) => { setTheme(t); saveUserSettings({ theme: t }); };
+            const updateColorScheme = (c) => { setColorScheme(c); saveUserSettings({ colorScheme: c }); };
+            const updateAiMode = (m) => { setAiMode(m); setTemperature(aiModes[m].temp); saveUserSettings({ aiMode: m, temperature: aiModes[m].temp }); };
+            const updateTemperature = (t) => { setTemperature(t); saveUserSettings({ temperature: t }); };
 
             const bgColor = theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-purple-50 to-slate-50';
             const cardBg = theme === 'dark' ? 'bg-black bg-opacity-40' : 'bg-white bg-opacity-80';
@@ -435,207 +408,26 @@
                 );
             }
 
-            return (
-                <div className={'flex h-full ' + bgColor}>
-                    <div className={cardBg + ' w-80 backdrop-blur-sm border-r border-purple-500/30 flex flex-col shadow-xl'}>
-                        <div className="p-4 border-b border-purple-500/30">
-                            <button onClick={createNewChat} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-4 py-3 hover:opacity-90 transition-all flex items-center justify-center gap-2 font-semibold mb-3 shadow-lg'}><Plus /> New Chat</button>
-                            <button onClick={() => setShowSettings(!showSettings)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-3 py-2 text-sm hover:bg-opacity-70 transition-all flex items-center justify-center gap-2 ' + colorSchemes[colorScheme].text}><Settings /> Settings</button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-2">
-                            <div className="px-2 mb-2"><span className={'text-xs font-bold uppercase tracking-wider ' + colorSchemes[colorScheme].text}>Chats</span></div>
-                            {chats.length === 0 ? (
-                                <div className="text-center p-4"><p className={colorSchemes[colorScheme].text + ' text-sm'}>No chats yet</p></div>
-                            ) : (
-                                chats.map(chat => (
-                                    <div key={chat.id} className={'group rounded-xl p-3 mb-2 cursor-pointer transition-all ' + (currentChatId === chat.id ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' bg-opacity-20 shadow-md' : 'hover:bg-purple-500 hover:bg-opacity-10')} onClick={() => switchChat(chat.id)}>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                <MessageSquare />
-                                                <span className={(currentChatId === chat.id ? textColor + ' font-semibold' : textColor) + ' text-sm truncate'}>{chat.name}</span>
-                                            </div>
-                                            <button onClick={(e) => { e.stopPropagation(); if (confirm('Delete?')) deleteChat(chat.id); }} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 p-1 transition-opacity"><Trash2 /></button>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <div className="p-4 border-t border-purple-500/30">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                    <p className={textColor + ' font-bold truncate'}>{user?.name}</p>
-                                    <p className={colorSchemes[colorScheme].text + ' text-xs truncate'}>{user?.email}</p>
-                                </div>
-                                <button onClick={handleLogout} className={colorSchemes[colorScheme].text + ' hover:opacity-70 p-2 transition-opacity'} title="Logout"><LogOut /></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 flex flex-col">
-                        <div className={cardBg + ' backdrop-blur-sm border-b border-purple-500/30 p-4 shadow-lg'}>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h1 className={'text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient}>{getGreeting()}, {user?.name}!</h1>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className={colorSchemes[colorScheme].text + ' text-sm'}>Mode:</span>
-                                        <span className={textColor + ' text-sm font-semibold'}>{aiModes[aiMode].name}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {messages.length === 0 && !isLoading && (
-                                <div className="text-center mt-20">
-                                    <div className={'text-6xl mb-4 ' + colorSchemes[colorScheme].text}>✨</div>
-                                    <p className={textColor + ' text-xl mb-2 font-bold'}>Ready to chat?</p>
-                                    <p className={colorSchemes[colorScheme].text + ' text-sm mb-8'}>Try one of these prompts:</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-3xl mx-auto">
-                                        {suggestedPrompts.map((prompt, idx) => (
-                                            <button key={idx} onClick={() => sendMessage(prompt)} disabled={!currentChatId} className={cardBg + ' backdrop-blur-sm border border-purple-500/30 rounded-xl p-4 hover:bg-opacity-60 hover:shadow-lg transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed'}>
-                                                <p className={textColor + ' text-sm font-medium'}>{prompt}</p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            
-                            {messages.map((msg, idx) => (
-                                <div key={idx} className={'flex animate-fadeIn ' + (msg.role === 'user' ? 'justify-end' : 'justify-start')}>
-                                    <div className={'max-w-2xl rounded-2xl px-6 py-4 shadow-lg ' + (msg.role === 'user' ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white' : cardBg + ' backdrop-blur-sm border border-purple-500/30 ' + textColor)}>
-                                        <div className="whitespace-pre-wrap break-words">{msg.content}</div>
-                                    </div>
-                                </div>
-                            ))}
-                            
-                            {isLoading && (
-                                <div className="flex justify-start animate-fadeIn">
-                                    <div className={cardBg + ' backdrop-blur-sm border border-purple-500/30 rounded-2xl px-6 py-4 shadow-lg'}><Loader2 /></div>
-                                </div>
-                            )}
-                            
-                            {error && (
-                                <div className="flex justify-center">
-                                    <div className="bg-red-500 bg-opacity-20 border border-red-500 rounded-xl px-4 py-2 text-red-300 text-sm">{error}</div>
-                                </div>
-                            )}
-                            
-                            <div ref={messagesEndRef} />
-                        </div>
-
-                        <div className={cardBg + ' backdrop-blur-sm border-t border-purple-500/30 p-4 shadow-lg'}>
-                            <div className="max-w-4xl mx-auto">
-                                {!currentChatId && <div className="text-center mb-3"><p className={colorSchemes[colorScheme].text + ' text-sm'}>Create a chat to start</p></div>}
-                                <div className="flex gap-2 mb-2">
-                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder="Type your message..." disabled={isLoading || !currentChatId} className={'flex-1 bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 placeholder-purple-300 text-white'} />
-                                    <button onClick={() => sendMessage()} disabled={isLoading || !input.trim() || !currentChatId} className={'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg'}>{isLoading ? <Loader2 /> : <Send />}</button>
-                                </div>
-                                <div className="text-xs text-center"><span className={colorSchemes[colorScheme].text}>{input.length} characters • {aiModes[aiMode].name} mode</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {showSettings && (
-                        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                            <div className={cardBg + ' backdrop-blur-lg border border-purple-500/30 rounded-3xl p-8 w-full max-w-2xl max-h-screen overflow-y-auto shadow-2xl'}>
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className={'text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient}>Settings</h2>
-                                    <button onClick={() => setShowSettings(false)} className={colorSchemes[colorScheme].text + ' hover:opacity-70 text-3xl font-bold'}>×</button>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div>
-                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>🎨 Theme</h3>
-                                        <div className="flex gap-3">
-                                            <button onClick={() => updateTheme('dark')} className={(theme === 'dark' ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white shadow-lg' : 'bg-slate-800 bg-opacity-30 ' + textColor) + ' flex-1 rounded-xl px-6 py-3 hover:opacity-90 transition-all flex items-center justify-center gap-2 font-semibold'}><Moon /> Dark</button>
-                                            <button onClick={() => updateTheme('light')} className={(theme === 'light' ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white shadow-lg' : 'bg-slate-800 bg-opacity-30 ' + textColor) + ' flex-1 rounded-xl px-6 py-3 hover:opacity-90 transition-all flex items-center justify-center gap-2 font-semibold'}><Sun /> Light</button>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>🌈 Color Scheme</h3>
-                                        <div className="grid grid-cols-3 gap-3">
-                                            {Object.keys(colorSchemes).map(scheme => (
-                                                <button key={scheme} onClick={() => updateColorScheme(scheme)} className={(colorScheme === scheme ? 'ring-4 ring-offset-2 shadow-xl scale-105' : 'hover:scale-105') + ' bg-gradient-to-r ' + colorSchemes[scheme].gradient + ' rounded-xl px-4 py-3 text-white hover:opacity-90 transition-all capitalize font-semibold'}>{scheme}</button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>🤖 AI Mode</h3>
-                                        <div className="space-y-3">
-                                            {Object.keys(aiModes).map(mode => (
-                                                <button key={mode} onClick={() => updateAiMode(mode)} className={(aiMode === mode ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white shadow-lg' : 'bg-slate-800 bg-opacity-30 ' + textColor) + ' w-full rounded-xl p-4 hover:opacity-90 transition-all text-left'}>
-                                                    <div className="flex items-center gap-3 mb-2">{aiModes[mode].icon}<span className="font-bold text-lg">{aiModes[mode].name}</span></div>
-                                                    <p className={(aiMode === mode ? 'text-white' : colorSchemes[colorScheme].text) + ' text-sm'}>{aiModes[mode].desc}</p>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>🌡️ Creativity: {temperature.toFixed(1)}</h3>
-                                        <input type="range" min="0" max="1" step="0.1" value={temperature} onChange={(e) => updateTemperature(parseFloat(e.target.value))} className="w-full h-3 rounded-lg appearance-none cursor-pointer bg-slate-800 bg-opacity-50" />
-                                        <div className="flex justify-between text-sm mt-2">
-                                            <span className={colorSchemes[colorScheme].text}>More Precise</span>
-                                            <span className={colorSchemes[colorScheme].text}>More Creative</span>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>👤 Profile</h3>
-                                        <div className="space-y-3">
-                                            <div>
-                                                <label className={colorSchemes[colorScheme].text + ' text-sm mb-2 block font-semibold'}>Name</label>
-                                                <input type="text" value={user?.name || ''} onChange={(e) => saveUserSettings({ name: e.target.value })} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
-                                            </div>
-                                            <div>
-                                                <label className={colorSchemes[colorScheme].text + ' text-sm mb-2 block font-semibold'}>Interests</label>
-                                                <textarea value={user?.topics || ''} onChange={(e) => saveUserSettings({ topics: e.target.value })} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 h-24 resize-none text-white'} />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button onClick={() => setShowSettings(false)} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-4 hover:opacity-90 transition-all font-bold text-lg shadow-lg'}>Save & Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<HaloAI />);
-    </script>
-</body>
-</html>
-                );
-            }
-
             if (screen === 'signup') {
                 return (
                     <div className={'flex items-center justify-center h-full ' + bgColor}>
                         <div className={cardBg + ' backdrop-blur-lg border border-purple-500/30 rounded-3xl p-8 w-full max-w-md shadow-2xl'}>
                             <div className="text-center mb-6">
                                 <h1 className={'text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' mb-2'}>HaloAI</h1>
-                                <p className="text-purple-400 text-sm">Your Intelligent Assistant</p>
+                                <p className="text-purple-400 text-sm">Create Your Account</p>
                             </div>
                             {!showVerification ? (
                                 <>
                                     <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
-                                    <input type="password" placeholder="Password (min 6 characters)" value={password} onChange={(e) => setPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSignup()} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
-                                    <button onClick={handleSignup} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 mb-4 hover:opacity-90 transition-all font-semibold shadow-lg'}>Send Verification Code</button>
-                                    <button onClick={() => setScreen('login')} className="w-full bg-transparent border-2 border-purple-500 text-purple-400 rounded-xl px-6 py-3 hover:bg-purple-500/20 transition-all">Back to Login</button>
+                                    <input type="password" placeholder="Password (min 6 chars)" value={password} onChange={(e) => setPassword(e.target.value)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
+                                    <button onClick={sendVerificationCode} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 mb-4 hover:opacity-90 transition-all font-semibold shadow-lg'}>Send Code</button>
+                                    <button onClick={() => setScreen('login')} className="w-full bg-transparent border-2 border-purple-500 text-purple-400 rounded-xl px-6 py-3 hover:bg-purple-500/20 transition-all">Back</button>
                                 </>
                             ) : (
                                 <>
-                                    <div className="text-center mb-4">
-                                        <p className={textColor + ' text-lg font-semibold mb-2'}>Enter Verification Code</p>
-                                        <p className={'text-purple-400 text-sm'}>Code sent to {email}</p>
-                                    </div>
-                                    <input type="text" placeholder="6-digit code" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && verifyAndSignup()} maxLength={6} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-center text-2xl tracking-widest text-white'} />
-                                    <button onClick={verifyAndSignup} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 mb-3 hover:opacity-90 transition-all font-semibold shadow-lg'}>Verify & Continue</button>
+                                    <p className="text-purple-300 text-center mb-4">Enter 6-digit code</p>
+                                    <input type="text" placeholder="000000" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} maxLength={6} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-center text-2xl tracking-widest text-white'} />
+                                    <button onClick={verifyAndSignup} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 mb-3 hover:opacity-90 transition-all font-semibold shadow-lg'}>Verify</button>
                                     <button onClick={() => { setShowVerification(false); setVerificationCode(''); }} className="w-full bg-transparent border-2 border-purple-500 text-purple-400 rounded-xl px-6 py-3 hover:bg-purple-500/20 transition-all">Back</button>
                                 </>
                             )}
@@ -649,13 +441,162 @@
                     <div className={'flex items-center justify-center h-full ' + bgColor}>
                         <div className={cardBg + ' backdrop-blur-lg border border-purple-500/30 rounded-3xl p-8 w-full max-w-md shadow-2xl'}>
                             <div className="text-center mb-6">
-                                <h1 className={'text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' mb-2'}>Welcome to HaloAI</h1>
-                                <p className="text-purple-400 text-sm">Let's personalize your experience</p>
+                                <h1 className={'text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' mb-2'}>Welcome!</h1>
+                                <p className="text-purple-400 text-sm">Tell us about yourself</p>
                             </div>
-                            <label className="text-purple-400 text-sm mb-2 block font-semibold">What should we call you?</label>
-                            <input type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
-                            <label className="text-purple-400 text-sm mb-2 block font-semibold">Topics of interest (optional)</label>
-                            <textarea placeholder="e.g., technology, science, art..." value={topics} onChange={(e) => setTopics(e.target.value)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 h-24 resize-none text-white'} />
+                            <label className="text-purple-400 text-sm mb-2 block font-semibold">Your Name</label>
+                            <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
+                            <label className="text-purple-400 text-sm mb-2 block font-semibold">Interests (optional)</label>
+                            <textarea placeholder="e.g., tech, science..." value={topics} onChange={(e) => setTopics(e.target.value)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-6 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 h-24 resize-none text-white'} />
                             <button onClick={handleOnboarding} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 hover:opacity-90 transition-all font-semibold shadow-lg'}>Get Started</button>
                         </div>
                     </div>
+                );
+            }
+
+            return (
+                <div className={'flex h-full ' + bgColor}>
+                    <div className={cardBg + ' w-80 backdrop-blur-sm border-r border-purple-500/30 flex flex-col shadow-xl'}>
+                        <div className="p-4 border-b border-purple-500/30">
+                            <button onClick={createNewChat} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-4 py-3 hover:opacity-90 transition-all flex items-center justify-center gap-2 font-semibold mb-3'}><Plus /> New Chat</button>
+                            <button onClick={() => setShowSettings(true)} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-3 py-2 text-sm hover:bg-opacity-70 transition-all flex items-center justify-center gap-2 ' + colorSchemes[colorScheme].text}><Settings /> Settings</button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-2">
+                            {chats.length === 0 ? (
+                                <div className="text-center p-4"><p className={colorSchemes[colorScheme].text + ' text-sm'}>No chats yet</p></div>
+                            ) : (
+                                chats.map(chat => (
+                                    <div key={chat.id} className={'group rounded-xl p-3 mb-2 cursor-pointer transition-all ' + (currentChatId === chat.id ? 'bg-purple-600 bg-opacity-20' : 'hover:bg-purple-500 hover:bg-opacity-10')} onClick={() => switchChat(chat.id)}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                <MessageSquare />
+                                                <span className={textColor + ' text-sm truncate'}>{chat.name}</span>
+                                            </div>
+                                            <button onClick={(e) => { e.stopPropagation(); if (confirm('Delete?')) deleteChat(chat.id); }} className="opacity-0 group-hover:opacity-100 text-red-400 p-1"><Trash2 /></button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <div className="p-4 border-t border-purple-500/30">
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                    <p className={textColor + ' font-bold truncate'}>{user?.name || 'User'}</p>
+                                    <p className={colorSchemes[colorScheme].text + ' text-xs truncate'}>{user?.email || ''}</p>
+                                </div>
+                                <button onClick={handleLogout} className={colorSchemes[colorScheme].text + ' p-2'}><LogOut /></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col">
+                        <div className={cardBg + ' backdrop-blur-sm border-b border-purple-500/30 p-4'}>
+                            <h1 className={'text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient}>{getGreeting()}, {user?.name || 'User'}!</h1>
+                            <p className={colorSchemes[colorScheme].text + ' text-sm mt-1'}>Mode: {aiModes[aiMode].name}</p>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4">
+                            {messages.length === 0 && !isLoading && (
+                                <div className="text-center mt-20">
+                                    <div className={'text-6xl mb-4'}>✨</div>
+                                    <p className={textColor + ' text-xl mb-4 font-bold'}>Ready to chat?</p>
+                                    {!currentChatId && <p className={colorSchemes[colorScheme].text + ' text-sm'}>Create a new chat to get started!</p>}
+                                </div>
+                            )}
+                            
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={'flex mb-4 ' + (msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+                                    <div className={'max-w-2xl rounded-2xl px-6 py-4 shadow-lg ' + (msg.role === 'user' ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white' : cardBg + ' backdrop-blur-sm border border-purple-500/30 ' + textColor)}>
+                                        <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                                    </div>
+                                </div>
+                            ))}
+                            
+                            {isLoading && (
+                                <div className="flex justify-start mb-4">
+                                    <div className={cardBg + ' backdrop-blur-sm border border-purple-500/30 rounded-2xl px-6 py-4'}><Loader2 /></div>
+                                </div>
+                            )}
+                            
+                            {error && (
+                                <div className="flex justify-center mb-4">
+                                    <div className="bg-red-500 bg-opacity-20 border border-red-500 rounded-xl px-4 py-2 text-red-300 text-sm">{error}</div>
+                                </div>
+                            )}
+                            
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        <div className={cardBg + ' backdrop-blur-sm border-t border-purple-500/30 p-4'}>
+                            <div className="max-w-4xl mx-auto">
+                                <div className="flex gap-2">
+                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder="Type your message..." disabled={isLoading || !currentChatId} className={'flex-1 bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ' + colorSchemes[colorScheme].ring + ' border border-purple-500/30 text-white'} />
+                                    <button onClick={() => sendMessage()} disabled={isLoading || !input.trim() || !currentChatId} className={'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-3 hover:opacity-90 disabled:opacity-50 transition-all'}>{isLoading ? <Loader2 /> : <Send />}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {showSettings && (
+                        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                            <div className={cardBg + ' backdrop-blur-lg border border-purple-500/30 rounded-3xl p-8 w-full max-w-2xl max-h-screen overflow-y-auto'}>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className={'text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r ' + colorSchemes[colorScheme].gradient}>Settings</h2>
+                                    <button onClick={() => setShowSettings(false)} className={colorSchemes[colorScheme].text + ' text-3xl font-bold'}>×</button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>Theme</h3>
+                                        <div className="flex gap-3">
+                                            <button onClick={() => updateTheme('dark')} className={(theme === 'dark' ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white' : 'bg-slate-700 text-purple-300') + ' flex-1 rounded-xl px-6 py-3 font-semibold'}><Moon /> Dark</button>
+                                            <button onClick={() => updateTheme('light')} className={(theme === 'light' ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white' : 'bg-slate-700 text-purple-300') + ' flex-1 rounded-xl px-6 py-3 font-semibold'}><Sun /> Light</button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>Color Scheme</h3>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {Object.keys(colorSchemes).map(scheme => (
+                                                <button key={scheme} onClick={() => updateColorScheme(scheme)} className={'bg-gradient-to-r ' + colorSchemes[scheme].gradient + ' rounded-xl px-4 py-3 text-white font-semibold capitalize ' + (colorScheme === scheme ? 'ring-4 ring-white' : '')}>{scheme}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>AI Mode</h3>
+                                        {Object.keys(aiModes).map(mode => (
+                                            <button key={mode} onClick={() => updateAiMode(mode)} className={(aiMode === mode ? 'bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white' : 'bg-slate-700 text-purple-300') + ' w-full rounded-xl p-4 mb-2 text-left font-semibold'}>
+                                                <div className="flex items-center gap-3">{aiModes[mode].icon} {aiModes[mode].name}</div>
+                                                <p className="text-sm opacity-80 mt-1">{aiModes[mode].desc}</p>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div>
+                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>Creativity: {temperature.toFixed(1)}</h3>
+                                        <input type="range" min="0" max="1" step="0.1" value={temperature} onChange={(e) => updateTemperature(parseFloat(e.target.value))} className="w-full" />
+                                    </div>
+
+                                    <div>
+                                        <h3 className={textColor + ' text-lg font-bold mb-3'}>Profile</h3>
+                                        <label className={colorSchemes[colorScheme].text + ' text-sm mb-2 block'}>Name</label>
+                                        <input type="text" value={user?.name || ''} onChange={(e) => saveUserSettings({ name: e.target.value })} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 mb-3 text-white border border-purple-500/30'} />
+                                        <label className={colorSchemes[colorScheme].text + ' text-sm mb-2 block'}>Interests</label>
+                                        <textarea value={user?.topics || ''} onChange={(e) => saveUserSettings({ topics: e.target.value })} className={'w-full bg-slate-800 bg-opacity-50 rounded-xl px-4 py-3 text-white border border-purple-500/30 h-24 resize-none'} />
+                                    </div>
+
+                                    <button onClick={() => setShowSettings(false)} className={'w-full bg-gradient-to-r ' + colorSchemes[colorScheme].gradient + ' text-white rounded-xl px-6 py-4 font-bold text-lg'}>Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HaloAI />);
+    </script>
+</body>
+</html>

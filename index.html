@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaloAI - Your Intelligent Assistant</title>
+    <meta name="description" content="HaloAI - Advanced AI chat assistant with customizable themes and intelligent conversation modes.">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #root {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        
+        // Lucide icons (inline SVG components)
+        const Send = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+        );
+        
+        const Loader2 = () => (
+            <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+            </svg>
+        );
+        
+        const Plus = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+        
+        const Trash2 = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+        );
+        
+        const LogOut = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+        );
+        
+        const MessageSquare = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        );
+        
+        const Settings = () => (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6m0 6v6m8.66-15l-3 5.2M6.34 15.8l-3 5.2m12.73-1.55l-5.2-3M6.34 8.2l-5.2-3"></path>
+            </svg>
+        );
+        
+        const Moon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        );
+        
+        const Sun = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+            </svg>
+        );
+        
+        const Zap = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+        );
+        
+        const Sparkles = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 3v18m9-9H3m15.66-5.66L5.34 18.34m13.32 0L5.34 5.66"></path>
+            </svg>
+        );
+        
+        const Brain = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
+                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
+            </svg>
+        );
+
+        // Simple localStorage wrapper for storage
+        const storage = {
+            get: async (key) => {
+                const value = localStorage.getItem(key);
+                return value ? { value } : null;
+            },
+            set: async (key, value) => {
+                localStorage.setItem(key, value);
+                return { key, value };
+            },
+            delete: async (key) => {
+                localStorage.removeItem(key);
+                return { key, deleted: true };
+            }
+        };
+        
+        window.storage = storage;
+
+        function HaloAI() {
+            const [screen, setScreen] = useState('login');
+            const [user, setUser] = useState(null);
+            const [currentChatId, setCurrentChatId] = useState(null);
+            const [chats, setChats] = useState([]);
+            const [messages, setMessages] = useState([]);
+            const [input, setInput] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [showSettings, setShowSettings] = useState(false);
+            const [error, setError] = useState('');
+            
+            const [theme, setTheme] = useState('dark');
+            const [colorScheme, setColorScheme] = useState('purple');
+            const [aiMode, setAiMode] = useState('balanced');
+            const [temperature, setTemperature] = useState(0.7);
+            
+            const messagesEndRef = useRef(null);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [name, setName] = useState('');
+            const [topics, setTopics] = useState('');
+            const [verificationCode, setVerificationCode] = useState('');
+            const [sentCode, setSentCode] = useState('');
+            const [showVerification, setShowVerification] = useState(false);
+
+            const API_CONFIG = {
+                endpoint: 'https://api.anthropic.com/v1/messages',
+                model: 'claude-sonnet-4-20250514',
+                maxTokens: 1000
+            };
+
+            const colorSchemes = {
+                purple: { gradient: 'from-purple-600 to-pink-600', text: 'text-purple-400', ring: 'ring-purple-500' },
+                blue: { gradient: 'from-blue-600 to-cyan-600', text: 'text-blue-400', ring: 'ring-blue-500' },
+                green: { gradient: 'from-green-600 to-emerald-600', text: 'text-green-400', ring: 'ring-green-500' },
+                orange: { gradient: 'from-orange-600 to-red-600', text: 'text-orange-400', ring: 'ring-orange-500' },
+                pink: { gradient: 'from-pink-600 to-rose-600', text: 'text-pink-400', ring: 'ring-pink-500' },
+                teal: { gradient: 'from-teal-600 to-cyan-600', text: 'text-teal-400', ring: 'ring-teal-500' },
+            };
+
+            const aiModes = {
+                balanced: { 
+                    name: 'Balanced', 
+                    icon: <Zap />, 
+                    desc: 'Perfect mix of creativity and accuracy',
+                    temp: 0.7
+                },
+                creative: { 
+                    name: 'Creative', 
+                    icon: <Sparkles />, 
+                    desc: 'Imaginative and expressive responses',
+                    temp: 1.0
+                },
+                precise: { 
+                    name: 'Precise', 
+                    icon: <Brain />, 
+                    desc: 'Accurate, factual, and concise',
+                    temp: 0.3
+                },
+            };
+
+            const suggestedPrompts = [
+                "Tell me a creative story",
+                "Explain quantum physics simply",
+                "Help me brainstorm ideas",
+                "Write a poem about AI",
+                "Solve a complex problem",
+                "Teach me something new"
+            ];
+
+            useEffect(() => {
+                loadUserData();
+            }, []);
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const loadUserData = async () => {
+                try {
+                    const userData = await storage.get('haloai_current_user');
+                    if (userData) {
+                        const parsedUser = JSON.parse(userData.value);
+                        setUser(parsedUser);
+                        if (parsedUser.theme) setTheme(parsedUser.theme);
+                        if (parsedUser.colorScheme) setColorScheme(parsedUser.colorScheme);
+                        if (parsedUser.aiMode) setAiMode(parsedUser.aiMode);
+                        if (parsedUser.temperature !== undefined) setTemperature(parsedUser.temperature);
+                        await loadChats(parsedUser.email);
+                        setScreen('chat');
+                    }
+                } catch (error) {
+                    console.log('No user session');
+                }
+            };
+
+            const loadChats = async (userEmail) => {
+                try {
+                    const chatsData = await storage.get('haloai_chats_' + userEmail);
+                    if (chatsData) {
+                        const parsedChats = JSON.parse(chatsData.value);
+                        setChats(parsedChats);
+                        if (parsedChats.length > 0) {
+                            setCurrentChatId(parsedChats[0].id);
+                            await loadMessages(parsedChats[0].id, userEmail);
+                        }
+                    }
+                } catch (error) {
+                    setChats([]);
+                }
+            };
+
+            const loadMessages = async (chatId, userEmail) => {
+                try {
+                    const messagesData = await storage.get('haloai_messages_' + userEmail + '_' + chatId);
+                    if (messagesData) {
+                        setMessages(JSON.parse(messagesData.value));
+                    } else {
+                        setMessages([]);
+                    }
+                } catch (error) {
+                    setMessages([]);
+                }
+            };
+
+            const saveChats = async (updatedChats) => {
+                await storage.set('haloai_chats_' + user.email, JSON.stringify(updatedChats));
+            };
+
+            const saveMessages = async (chatId, msgs) => {
+                await storage.set('haloai_messages_' + user.email + '_' + chatId, JSON.stringify(msgs));
+            };
+
+            const saveUserSettings = async (updates) => {
+                const updatedUser = { ...user, ...updates };
+                await storage.set('haloai_user_' + user.email, JSON.stringify(updatedUser));
+                await storage.set('haloai_current_user', JSON.stringify(updatedUser));
+                setUser(updatedUser);
+            };
+
+            const validateEmail = (email) => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            };
+
+            const sendVerificationCode = async () => {
+                if (!validateEmail(email)) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+                if (!password || password.length < 6) {
+                    alert('Password must be at least 6 characters');
+                    return;
+                }
+                
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                setSentCode(code);
+                setShowVerification(true);
+                alert('Verification code: ' + code + '\n\n(In production, this would be emailed to you)');
+            };
+
+            const verifyAndSignup = async () => {
+                if (verificationCode !== sentCode) {
+                    alert('Invalid verification code');
+                    return;
+                }
+                setShowVerification(false);
+                setScreen('onboarding');
+            };
+
+            const handleSignup = async () => {
+                sendVerificationCode();
+            };
+
+            const handleLogin = async () => {
+                if (!email || !password) return;
+                if (!validateEmail(email)) {
+                    alert('Please enter a valid email');
+                    return;
+                }
+                try {
+                    const userData = await storage.get('haloai_user_' + email);
+                    if (userData) {
+                        const parsedUser = JSON.parse(userData.value);
+                        if (parsedUser.password === password) {
+                            setUser(parsedUser);
+                            if (parsedUser.theme) setTheme(parsedUser.theme);
+                            if (parsedUser.colorScheme) setColorScheme(parsedUser.colorScheme);
+                            if (parsedUser.aiMode) setAiMode(parsedUser.aiMode);
+                            if (parsedUser.temperature !== undefined) setTemperature(parsedUser.temperature);
+                            await storage.set('haloai_current_user', JSON.stringify(parsedUser));
+                            await loadChats(parsedUser.email);
+                            setScreen('chat');
+                        } else {
+                            alert('Incorrect password');
+                        }
+                    } else {
+                        alert('Account not found');
+                    }
+                } catch (error) {
+                    alert('Login failed');
+                }
+            };
+
+            const handleOnboarding = async () => {
+                if (!name) {
+                    alert('Please enter your name');
+                    return;
+                }
+                const newUser = { 
+                    email, 
+                    password, 
+                    name, 
+                    topics, 
+                    theme: 'dark', 
+                    colorScheme: 'purple', 
+                    aiMode: 'balanced',
+                    temperature: 0.7
+                };
+                await storage.set('haloai_user_' + email, JSON.stringify(newUser));
+                await storage.set('haloai_current_user', JSON.stringify(newUser));
+                setUser(newUser);
+                setScreen('chat');
+            };
+
+            const handleLogout = async () => {
+                await storage.delete('haloai_current_user');
+                setUser(null);
+                setChats([]);
+                setMessages([]);
+                setCurrentChatId(null);
+                setScreen('login');
+                setEmail('');
+                setPassword('');
+            };
+
+            const getGreeting = () => {
+                const hour = new Date().getHours();
+                if (hour < 12) return 'Good morning';
+                if (hour < 18) return 'Good afternoon';
+                return 'Good evening';
+            };
+
+            const createNewChat = async () => {
+                const newChat = {
+                    id: Date.now().toString(),
+                    name: 'New Chat',
+                    createdAt: new Date().toISOString(),
+                };
+                const updatedChats = [newChat, ...chats];
+                setChats(updatedChats);
+                setCurrentChatId(newChat.id);
+                setMessages([]);
+                await saveChats(updatedChats);
+            };
+
+            const deleteChat = async (chatId) => {
+                const updatedChats = chats.filter(c => c.id !== chatId);
+                setChats(updatedChats);
+                await saveChats(updatedChats);
+                await storage.delete('haloai_messages_' + user.email + '_' + chatId);
+                if (currentChatId === chatId) {
+                    if (updatedChats.length > 0) {
+                        setCurrentChatId(updatedChats[0].id);
+                        await loadMessages(updatedChats[0].id, user.email);
+                    } else {
+                        setCurrentChatId(null);
+                        setMessages([]);
+                    }
+                }
+            };
+
+            const switchChat = async (chatId) => {
+                setCurrentChatId(chatId);
+                await loadMessages(chatId, user.email);
+            };
+
+            const getSystemPrompt = () => {
+                let prompt = user.topics ? 'User interests: ' + user.topics + '. ' : '';
+                
+                switch(aiMode) {
+                    case 'precise':
+                        prompt += 'Be concise and accurate.';
+                        break;
+                    case 'creative':
+                        prompt += 'Be creative and imaginative.';
+                        break;
+                    default:
+                        prompt += 'Be helpful and balanced.';
+                }
+                
+                return prompt;
+            };
+
+            const sendMessage = async (messageText) => {
+                const textToSend = messageText || input;
+                if (!textToSend.trim() || isLoading) return;
+
+                const userMessage = { role: 'user', content: textToSend };
+                const updatedMessages = [...messages, userMessage];
+                setMessages(updatedMessages);
+                setInput('');
+                setIsLoading(true);
+                setError('');
+
+                try {
+                    const response = await fetch(API_CONFIG.endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            model: API_CONFIG.model,
+                            max_tokens: API_CONFIG.maxTokens,
+                            temperature: temperature,
+                            system: getSystemPrompt(),
+                            messages: updatedMessages,
+                        }),
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error.message || 'Error occurred');
+                    }
+                    
+                    if (data.content && data.content.length > 0) {
+                        const aiMessage = {
+                            role: 'assistant',
+                            content: data.content
+                                .filter(block => block.type === 'text')
+                                .map(block => block.text)
+                                .join('\n')
+                        };
+                        const finalMessages = [...updatedMessages, aiMessage];
+                        setMessages(finalMessages);
+                        await saveMessages(currentChatId, finalMessages);
+
+                        const currentChat = chats.find(c => c.id === currentChatId);
+                        if (currentChat && currentChat.name === 'New Chat' && finalMessages.length === 2) {
+                            try {
+                                const titleResponse = await fetch(API_CONFIG.endpoint, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        model: API_CONFIG.model,
+                                        max_tokens: 50,
+                                        messages: [{
+                                            role: 'user',
+                                            content: 'Generate a 2-4 word title for: "' + textToSend + '". Only the title.'
+                                        }],
+                                    }),
+                                });
+                                
+                                const titleData = await titleResponse.json();
+                                
+                                if (titleData.content && titleData.content.length > 0) {
+                                    const newName = titleData.content[0].text.trim().replace(/['"]/g, '').slice(0, 40);
+                                    const updatedChats = chats.map(c => 
+                                        c.id === currentChatId ? { ...c, name: newName } : c
+                                    );
+                                    setChats(updatedChats);
+                                    await saveChats(updatedChats);
+                                }
+                            } catch (titleError) {
+                                console.log('Auto-naming failed');
+                            }
+                        }
+                    } else {
+                        throw new Error('No response');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    setError(error.message || 'Failed to get response');
+                    const errorMessage = {
+                        role: 'assistant',
+                        content: 'Sorry, an error occurred. Please try again.'
+                    };
+                    const finalMessages = [...updatedMessages, errorMessage];
+                    setMessages(finalMessages);
+                    await saveMessages(currentChatId, finalMessages);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            const updateTheme = async (newTheme) => {
+                setTheme(newTheme);
+                await saveUserSettings({ theme: newTheme });
+            };
+
+            const updateColorScheme = async (newScheme) => {
+                setColorScheme(newScheme);
+                await saveUserSettings({ colorScheme: newScheme });
+            };
+
+            const updateAiMode = async (newMode) => {
+                setAiMode(newMode);
+                setTemperature(aiModes[newMode].temp);
+                await saveUserSettings({ aiMode: newMode, temperature: aiModes[newMode].temp });
+            };
+
+            const updateTemperature = async (newTemp) => {
+                setTemperature(newTemp);
+                await saveUserSettings({ temperature: newTemp });
+            };
+
+            const bgColor = theme === 'dark' 
+                ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'
+                : 'bg-gradient-to-br from-slate-50 via-purple-50 to-slate-50';
+            
+            const cardBg = theme === 'dark' ? 'bg-black bg-opacity-40' : 'bg-white bg-opacity-80';
+            const textColor = theme === 'dark' ? 'text-purple-100' : 'text-slate-800';
+
+            // Rest of your component JSX here - keeping it short for the HTML file
+            // You'll need to add all the return JSX from the artifact
+
+            return (
+                <div className="w-full h-full">
+                    <div className={`flex items-center justify-center h-full ${bgColor}`}>
+                        <div className="text-center">
+                            <h1 className={`text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r ${colorSchemes[colorScheme].gradient} mb-4`}>
+                                HaloAI
+                            </h1>
+                            <p className="text-purple-400 text-xl">Your Intelligent Assistant</p>
+                            <p className="text-purple-300 text-sm mt-4">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HaloAI />);
+    </script>
+</body>
+</html>
